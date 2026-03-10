@@ -1,7 +1,26 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const nodemailer = require("nodemailer");
 
 dotenv.config();
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.ALERT_EMAIL_USER,
+    pass: process.env.ALERT_EMAIL_PASS,
+  },
+});
+
+async function sendAdvisorAlert(from, text) {
+  const mailOptions = {
+    from: process.env.ALERT_EMAIL_USER,
+    to: process.env.ALERT_EMAIL_TO,
+    subject: "Nuevo lead en Step Up English Coach",
+    text: `Nuevo mensaje con intención de asesor.\n\nNúmero: ${from}\nMensaje: ${text}`,
+  };
+
+  await transporter.sendMail(mailOptions);
+}
 
 const app = express();
 app.use(express.json());
@@ -72,6 +91,13 @@ Incluye:
 Si este programa es lo que usted necesita, escriba ASESOR.`;
 
 } else if (incomingText === "ASESOR") {
+
+  try {
+  await sendAdvisorAlert(from, text);
+  console.log("Correo de alerta enviado correctamente");
+} catch (error) {
+  console.error("Error al enviar correo:", error);
+}
 
   replyText = `Gracias por su interés.
 
